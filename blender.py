@@ -4,6 +4,8 @@ from time import sleep
 import itertools
 import mathutils
 import math
+from pathlib import Path
+import os
 
 def fibonacci_sphere(samples=1, randomize=False):
     rnd = 1.
@@ -32,6 +34,10 @@ def get_min_angle(points):
         min_angle = min(min_angle, angle)
     return math.degrees(min_angle)
 
+def delete_all_objects():
+    for object in bpy.data.objects:
+        bpy.data.objects.remove(object)
+
 def set_camera():
     if "Camera" in bpy.data.objects:
         bpy.data.objects.remove(bpy.data.objects["Camera"])
@@ -40,6 +46,7 @@ def set_camera():
     cam.name = "Camera"
     set_camera_pos((5, -5, 5))
     set_camera_lookat((0, 0, 0))
+    bpy.context.scene.camera = cam
 
 def set_object():
     if "Object" in bpy.data.objects:
@@ -57,9 +64,14 @@ def set_light():
     sun_object = bpy.data.objects.new(name="Sun", object_data=sun_data)
     bpy.context.scene.objects.link(sun_object)
     sun_object.location = (5, 5, 5)
+    # group lights
+    bpy.ops.object.select_all(action='DESELECT')
     bpy.context.scene.objects["Sun"].select = True
     bpy.ops.group.create(name="Light")
     bpy.ops.object.group_link(group="Light")
+    # environment light
+    bpy.context.scene.world.light_settings.use_environment_light = True
+    bpy.context.scene.world.light_settings.environment_energy = 0.5
 
 def set_camera_pos(pos):
     cam = bpy.data.objects["Camera"]
@@ -76,7 +88,7 @@ def set_camera_lookat(look_at):
     rot_quat = direction.to_track_quat('-Z', 'Y')
     cam.rotation_euler = rot_quat.to_euler()
 
-def render(name):
+def render(group, name):
     bpy.context.scene.use_nodes = True
     tree = bpy.context.scene.node_tree
     links = tree.links
@@ -88,7 +100,10 @@ def render(name):
     v.location = 750, 210
     v.use_alpha = False
     links.new(rl.outputs[0], v.inputs[0])
-    bpy.context.scene.render.filepath = "~/Blender\\" + name + ".png"
+    path = str(Path.home()) + "/Blender/" + group + "/"
+    os.mkdir(path)
+    print(path + name + ".png")
+    bpy.context.scene.render.filepath = path + name + ".png"
     #bpy.context.scene.render.resolution_x = 1920
     #bpy.context.scene.render.resolution_y = 1080
     bpy.ops.render.render(write_still = True, use_viewport = True)
@@ -119,16 +134,19 @@ def images():
     # TODO: make object variable
     # TODO: multiple distances
     # TODO: multiple camera origin position and camera lookat positions/roll/up vertices
-    bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
+    delete_all_objects()
+    set_camera()
+    set_object()
+    set_light()
     i = 0
     for pos in fibonacci_sphere(100):
         factor = 5.0
         pos = (pos[0] * factor, pos[1] * factor, pos[2] * factor)
         set_camera_pos(pos)
         bpy.context.scene.update()
-        set_camera_lookat(bpy.data.objects["Cube"].location)
+        set_camera_lookat(bpy.data.objects["Object"].location)
         bpy.context.scene.update()
-        render(str(i))
+        render(str(i), "1")
         i += 1
 
 def viewpoints():
