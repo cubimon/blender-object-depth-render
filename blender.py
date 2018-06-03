@@ -73,6 +73,11 @@ def set_light():
     bpy.context.scene.world.light_settings.use_environment_light = True
     bpy.context.scene.world.light_settings.environment_energy = 0.5
 
+def set_renderer():
+    bpy.data.scenes["Scene"].render.image_settings.file_format = "OPEN_EXR_MULTILAYER"
+    bpy.data.scenes["Scene"].render.layers["RenderLayer"].use_pass_combined = True
+    bpy.data.scenes["Scene"].render.layers["RenderLayer"].use_pass_z = True
+
 def set_camera_pos(pos):
     cam = bpy.data.objects["Camera"]
     cam.location.x = pos[0]
@@ -102,12 +107,12 @@ def render(group, name):
     links.new(rl.outputs[0], v.inputs[0])
     path = str(Path.home()) + "/Blender/" + group + "/"
     os.mkdir(path)
-    print(path + name + ".png")
-    bpy.context.scene.render.filepath = path + name + ".png"
+    bpy.context.scene.render.filepath = path + name + ".exr"
     #bpy.context.scene.render.resolution_x = 1920
     #bpy.context.scene.render.resolution_y = 1080
     bpy.ops.render.render(write_still = True, use_viewport = True)
 
+'''
 def renderDepth():
     bpy.context.scene.use_nodes = True
     tree = bpy.context.scene.node_tree
@@ -129,6 +134,7 @@ def renderDepth():
     bpy.ops.render.render()
     pixels = bpy.data.images["Viewer Node"].pixels
     return np.array(pixels[:])
+'''
 
 def images():
     # TODO: make object variable
@@ -138,6 +144,7 @@ def images():
     set_camera()
     set_object()
     set_light()
+    set_renderer()
     i = 0
     for pos in fibonacci_sphere(100):
         factor = 5.0
