@@ -24,15 +24,38 @@ def load_exr(path):
     r = exr_channel_to_np_arr(img, "RenderLayer.Combined.R")
     g = exr_channel_to_np_arr(img, "RenderLayer.Combined.G")
     b = exr_channel_to_np_arr(img, "RenderLayer.Combined.B")
-    col = np.zeros((height, width, 3), dtype=np.uint8)
-    col[..., 0] = r * 256
-    col[..., 1] = g * 256
-    col[..., 2] = b * 256
-    return (col, depth)
+    col_mat = np.zeros((height, width, 3), dtype=np.uint8)
+    col_mat[..., 0] = r * 256
+    col_mat[..., 1] = g * 256
+    col_mat[..., 2] = b * 256
+    depth_mat = np.zeros((height, width, 1), dtype=np.uint8)
+    depth_mat[..., 0] = depth / np.amax(depth) * 256
+    return (col_mat, depth)
 
-exr_files = glob.glob("**/*.exr")
-for exr_file in exr_files:
-    base_file = os.path.splitext(exr_file)[0]
-    img = load_exr(exr_file)
-    cv2.imwrite(base_file + ".jpg", img[0])
+def extract_here():
+    exr_files = glob.glob("**/*.exr")
+    for exr_file in exr_files:
+        base_file = os.path.splitext(exr_file)[0]
+        col, depth = load_exr(exr_file)
+        cv2.imwrite(base_file + "_rgb.png", col)
+        cv2.imwrite(base_file + "_depth.png", depth)
+
+def get_bb_from_depth(depth_img):
+    img = np.copy(depth_img)
+    cv2.bitwise_not(img, img)
+    nz_x_idx, nz_y_idx = np.nonzero(img)
+    min_pos = (min(nz_y_idx), min(nz_x_idx))
+    max_pos = (max(nz_y_idx), max(nz_x_idx))
+    return (min_pos, max_pos)
+
+'''
+img = cv2.imread("0/1_depth.png", 0)
+min_pos, max_pos = get_bb_from_depth(img)
+cv2.rectangle(img, min_pos, max_pos, 128, 3)
+cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+cv2.imshow("test", img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+cv2.imwrite("asdf.png", img)
+'''
 
