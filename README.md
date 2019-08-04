@@ -1,0 +1,1 @@
+`blender.py` contains python code that must be executed in blender, this generated 100 folders, for each folder one `.exr` image. The exr images can be converted to `.png` using `extract.py`. Beware that floats are truncated.
