@@ -56,27 +56,29 @@ def set_object():
     bpy.data.objects["Object"].location = (0, 0, 0)
 
 def set_light():
-    if "Light" in bpy.data.groups:
-        for object in bpy.data.groups["Light"].objects:
+    if "Light" in bpy.data.collections:
+        for object in bpy.data.collections["Light"].objects:
             bpy.data.objects.remove(object)
-        bpy.data.groups.remove(bpy.data.groups["Light"])
-    sun_data = bpy.data.lamps.new("Sun", type="SUN")
+        bpy.data.collections.remove(bpy.data.collections["Light"])
+    sun_data = bpy.data.lights.new("Sun", type="SUN")
     sun_object = bpy.data.objects.new(name="Sun", object_data=sun_data)
-    bpy.context.scene.objects.link(sun_object)
+    bpy.context.collection.objects.link(sun_object)
     sun_object.location = (5, 5, 5)
     # group lights
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.context.scene.objects["Sun"].select = True
-    bpy.ops.group.create(name="Light")
-    bpy.ops.object.group_link(group="Light")
+    # TODO: fix groups
+    #bpy.ops.object.select_all(action='DESELECT')
+    #bpy.context.collection.objects["Sun"].select_set(True)
+    #bpy.ops.group.create(name="Light")
+    #bpy.ops.object.group_link(group="Light")
     # environment light
-    bpy.context.scene.world.light_settings.use_environment_light = True
-    bpy.context.scene.world.light_settings.environment_energy = 0.5
+    #bpy.context.collection.world.light_settings.use_environment_light = True
+    #bpy.context.collection.world.light_settings.environment_energy = 0.5
 
 def set_renderer():
     bpy.data.scenes["Scene"].render.image_settings.file_format = "OPEN_EXR_MULTILAYER"
-    bpy.data.scenes["Scene"].render.layers["RenderLayer"].use_pass_combined = True
-    bpy.data.scenes["Scene"].render.layers["RenderLayer"].use_pass_z = True
+    # I guess these two attributes are set by default
+    #bpy.data.scenes["Scene"].view_layers["View Layer"].use_pass_combined = True
+    #bpy.data.scenes["Scene"].view_layers["View Layer"].use_pass_z = True
 
 def set_camera_pos(pos):
     cam = bpy.data.objects["Camera"]
@@ -150,9 +152,7 @@ def images():
         factor = 5.0
         pos = (pos[0] * factor, pos[1] * factor, pos[2] * factor)
         set_camera_pos(pos)
-        bpy.context.scene.update()
         set_camera_lookat(bpy.data.objects["Object"].location)
-        bpy.context.scene.update()
         render(str(i), "1")
         i += 1
 

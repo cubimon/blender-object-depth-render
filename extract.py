@@ -1,11 +1,11 @@
+#!/usr/bin/python
+
 import OpenEXR
 import cv2
 import numpy as np
 import itertools
 import glob
 import os
-
-# import pdb; pdb.set_trace()
 
 def exr_get_size(exr_img):
     box = exr_img.header()["dataWindow"]
@@ -20,10 +20,10 @@ def exr_channel_to_np_arr(exr_img, channel):
 def load_exr(path):
     img = OpenEXR.InputFile(path)
     width, height = exr_get_size(img)
-    depth = exr_channel_to_np_arr(img, "RenderLayer.Depth.Z")
-    r = exr_channel_to_np_arr(img, "RenderLayer.Combined.R")
-    g = exr_channel_to_np_arr(img, "RenderLayer.Combined.G")
-    b = exr_channel_to_np_arr(img, "RenderLayer.Combined.B")
+    depth = exr_channel_to_np_arr(img, "View Layer.Depth.Z")
+    r = exr_channel_to_np_arr(img, "View Layer.Combined.R")
+    g = exr_channel_to_np_arr(img, "View Layer.Combined.G")
+    b = exr_channel_to_np_arr(img, "View Layer.Combined.B")
     col_mat = np.zeros((height, width, 3), dtype=np.uint8)
     col_mat[..., 0] = r * 256
     col_mat[..., 1] = g * 256
